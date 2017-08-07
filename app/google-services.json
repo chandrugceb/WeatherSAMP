@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "575667852069",
+    "firebase_url": "https://weathersamp.firebaseio.com",
+    "project_id": "weathersamp",
+    "storage_bucket": "weathersamp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:575667852069:android:0e49d474e31cfe71",
+        "android_client_info": {
+          "package_name": "com.example.chand.weathersamp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "575667852069-3783lr0s5a36437rdsn3r1m2ijaoh2hh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBaJbEqVi1GphQNAb5hWZok9CugvVRul5M"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

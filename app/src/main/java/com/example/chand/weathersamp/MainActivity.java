@@ -1,5 +1,6 @@
 package com.example.chand.weathersamp;
 
+import android.graphics.Typeface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -21,6 +22,7 @@ public class MainActivity extends AppCompatActivity
     EditText mEnterEditText;
     Button mButtonSend;
     String strMessage;
+    Typeface type;
 
 
     DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity
         mConditionTextView = (TextView)findViewById(R.id.textviewCondition);
         mEnterEditText = (EditText)findViewById(R.id.editTextEnter);
         mButtonSend = (Button)findViewById(R.id.buttonSend);
+        type = Typeface.createFromAsset(getAssets(), "fonts/TrebuchetMS.ttf");
     }
 
     @Override
@@ -44,6 +47,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String text = dataSnapshot.getValue(String.class);
+                mConditionTextView.setTypeface(type);
                 mConditionTextView.setText(text);
             }
 
@@ -60,7 +64,7 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
+                mEnterEditText.setTypeface(type);
             }
 
             @Override
