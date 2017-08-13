@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.chand.weathersamp">
-
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_asset"
@@ -9,6 +9,7 @@
         android:roundIcon="@drawable/ic_asset"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <meta-data android:name="com.google.android.gms.vision.DEPENDENCIES" android:value="barcode"/>
         <activity android:name=".LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -17,6 +18,8 @@
         </activity>
         <activity android:name=".MainActivity"></activity>
         <activity android:name=".MenuActivity"></activity>
+        <activity android:name=".InstallActivity"></activity>
+        <activity android:name=".ScanActivity"></activity>
     </application>
 
 </manifest>

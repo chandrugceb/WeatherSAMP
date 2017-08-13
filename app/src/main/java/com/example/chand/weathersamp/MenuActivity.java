@@ -7,9 +7,11 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,7 +28,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-public class MenuActivity extends AppCompatActivity
+public class MenuActivity extends AppCompatActivity implements AdapterView.OnItemClickListener
 {
     Intent MenuIntent;
     GridView gvmenu;
@@ -41,12 +43,24 @@ public class MenuActivity extends AppCompatActivity
         tvEmail.setText(MenuIntent.getStringExtra("UserEmail"));
         gvmenu = (GridView)findViewById(R.id.gvMenu);
         gvmenu.setAdapter(new MenuAdapter(this));
+        gvmenu.setOnItemClickListener(this);
     }
 
     @Override
     protected void onStart()
     {
         super.onStart();
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+    Intent InstallIntent = new Intent(this,InstallActivity.class);
+        Log.d("AuthTest","On Click");
+        MenuAdapter.viewHolder MenuViewHolder = (MenuAdapter.viewHolder) view.getTag();
+        MenuItem ChoosenMenu = (MenuItem) MenuViewHolder.ivRoutineIcon.getTag();
+        InstallIntent.putExtra("IconId",ChoosenMenu.iconId );
+        InstallIntent.putExtra("IconText", ChoosenMenu.iconName);
+        startActivity(InstallIntent);
     }
 }
 
@@ -84,7 +98,7 @@ class MenuAdapter extends BaseAdapter
         return i;
     }
 
-    class viewHolder
+    public class viewHolder
     {
         ImageView ivRoutineIcon;
         TextView tvRoutineName;
@@ -111,6 +125,7 @@ class MenuAdapter extends BaseAdapter
             MenuViewHolder = (viewHolder) MenuIconView.getTag();
         }
         MenuViewHolder.ivRoutineIcon.setImageResource(MenuList.get(i).iconId);
+        MenuViewHolder.ivRoutineIcon.setTag(MenuList.get(i));
         MenuViewHolder.tvRoutineName.setText(MenuList.get(i).iconName);
         return MenuIconView;
     }
