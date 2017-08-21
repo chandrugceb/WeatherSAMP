@@ -5,7 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.chand.weathersamp.MainActivity">
-
+    <ProgressBar
+        android:id="@+id/pbLoginProgressBar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"/>
+<android.support.constraint.ConstraintLayout
+    android:id="@+id/clLoginLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:visibility="visible">
     <EditText
         android:id="@+id/etEmail"
         android:layout_width="wrap_content"
@@ -46,4 +55,5 @@
         app:layout_constraintTop_toBottomOf="@+id/etPassword"
         tools:layout_constraintLeft_creator="1"
         app:layout_constraintLeft_toLeftOf="parent" />
+</android.support.constraint.ConstraintLayout>
 </android.support.constraint.ConstraintLayout>

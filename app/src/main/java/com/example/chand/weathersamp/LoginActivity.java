@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +33,8 @@ public class LoginActivity extends AppCompatActivity
     EditText editTextEmail;
     EditText editTextPassword;
     Button buttonSignOn;
+    ConstraintLayout clLoginView;
+    ProgressBar pbLoginProgress;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -43,6 +47,11 @@ public class LoginActivity extends AppCompatActivity
         editTextEmail = (EditText)findViewById(R.id.etEmail);
         editTextPassword = (EditText)findViewById(R.id.etPassword);
         buttonSignOn = (Button)findViewById(R.id.btSignOn);
+        clLoginView = (ConstraintLayout)findViewById(R.id.clLoginLayout);
+        pbLoginProgress = (ProgressBar)findViewById(R.id.pbLoginProgressBar);
+
+        clLoginView.setVisibility(View.GONE);
+        pbLoginProgress.setVisibility(View.VISIBLE);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -50,19 +59,23 @@ public class LoginActivity extends AppCompatActivity
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth){
                 FirebaseUser user = firebaseAuth.getCurrentUser();
+                clLoginView.setVisibility(View.GONE);
+                pbLoginProgress.setVisibility(View.VISIBLE);
                 if(user != null)
                 {
                     if(SignedIn == false)
                     {
                         Log.d("AuthTest", "Login Success and the user is " + user.getUid());
                         SignedIn = true;
-                        gotoMenu(user.getEmail());
+                        gotoMenu(user.getEmail(), user.getUid());
                     }
                 }
                 else
                 {
                     Log.d("AuthTest", "Sign out Successful");
                     SignedIn = false;
+                    clLoginView.setVisibility(View.VISIBLE);
+                    pbLoginProgress.setVisibility(View.GONE);
                 }
             }
         };
@@ -166,10 +179,11 @@ public class LoginActivity extends AppCompatActivity
         return valid;
     }
 
-    private void gotoMenu(String email)
+    private void gotoMenu(String email, String userId)
     {
         Intent MenuIntent = new Intent(LoginActivity.this, MenuActivity.class);
         MenuIntent.putExtra("UserEmail",email);
+        MenuIntent.putExtra("UserID",userId);
         startActivity(MenuIntent);
         finish();
     }

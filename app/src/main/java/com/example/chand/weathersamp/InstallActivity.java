@@ -29,8 +29,6 @@ public class InstallActivity extends AppCompatActivity implements ZXingScannerVi
 
     private ZXingScannerView zXingScannerView;
 
-    public static final int REQUEST_CODE = 100;
-    public static final int PERMISSION_REQUEST = 200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -44,18 +42,6 @@ public class InstallActivity extends AppCompatActivity implements ZXingScannerVi
 
         ivRoutineIcon = (ImageView)findViewById(R.id.ivIcon_Image);
         ivRoutineIcon.setImageResource(InstallIntent.getIntExtra("IconId", R.drawable.install_icon));
-
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
-        {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST);
-        }
-        /*ivRoutineIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent ScanIntent = new Intent(InstallActivity.this, ScanActivity.class);
-                startActivityForResult(ScanIntent, REQUEST_CODE);
-            }
-        });*/
     }
 
     @Override
@@ -81,7 +67,6 @@ public class InstallActivity extends AppCompatActivity implements ZXingScannerVi
     @Override
     public void handleResult(Result result) {
         Toast.makeText(getApplicationContext(), result.getText(),Toast.LENGTH_LONG).show();
-        //zXingScannerView.resumeCameraPreview(this);
         zXingScannerView.stopCamera();
         finish();
     }
