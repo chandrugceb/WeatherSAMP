@@ -24,7 +24,7 @@
             android:visibility="visible">
 
             <ImageView
-                android:id="@+id/ibScan"
+                android:id="@+id/ivScan"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_alignParentTop="true"
@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:minHeight="40dp"
                 android:layout_alignParentTop="true"
-                android:layout_toLeftOf="@id/ibScan"
+                android:layout_toLeftOf="@id/ivScan"
                 android:textAllCaps="true"
                 android:hint="Scan or Enter Location" />
         </RelativeLayout>
@@ -67,7 +67,7 @@
                 android:text="Location" />
 
             <TextView
-                android:id="@+id/actvRoutineStepValueView"
+                android:id="@+id/tvRoutineStepValueView"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="40dp"

@@ -183,17 +183,6 @@ class MenuAdapter extends BaseAdapter
     MenuAdapter(Context context, ArrayList<MenuItem> MenuList)
     {
         this.context = context;
- /*       MenuList = new ArrayList<MenuItem>();
-        MenuItem Menu1 = new MenuItem(R.drawable.install_icon, "Install");
-        MenuItem Menu2 = new MenuItem(R.drawable.uninstall_icon, "Uninstall");
-        MenuItem Menu3 = new MenuItem(R.drawable.send_icon, "Send");
-        MenuItem Menu4 = new MenuItem(R.drawable.receive_icon, "Receive");
-        MenuItem Menu5 = new MenuItem(R.drawable.swap_icon, "Swap");
-        MenuList.add(Menu1);
-        MenuList.add(Menu2);
-        MenuList.add(Menu3);
-        MenuList.add(Menu4);
-        MenuList.add(Menu5);*/
         this.MenuList = MenuList;
     }
     @Override

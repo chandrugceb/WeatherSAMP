@@ -3,22 +3,27 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-
+    <TextView
+        android:id="@+id/tvRoutineIcon_name"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:text="Install"
+        android:textSize="30dp"
+        android:layout_centerHorizontal="true"
+        android:paddingLeft="10dp"
+        android:paddingBottom="5dp"/>
     <ImageView
         android:id="@+id/ivIcon_Image"
         android:src="@drawable/install_icon"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:onClick="scan"/>
-
-    <TextView
-        android:id="@+id/tvIcon_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Install"
-        android:layout_below="@+id/ivIcon_Image"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp" />
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:onClick="scan"
+        android:layout_toLeftOf="@id/tvRoutineIcon_name"
+        android:paddingBottom="5dp"/>
+    <ListView
+        android:id="@+id/lvRoutineSteps"
+        android:layout_below="@id/tvRoutineIcon_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    </ListView>
 </RelativeLayout>
