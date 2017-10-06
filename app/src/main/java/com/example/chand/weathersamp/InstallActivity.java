@@ -1,17 +1,26 @@
 package com.example.chand.weathersamp;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutCompat;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.LinearInterpolator;
+import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
 import android.widget.ImageButton;
@@ -19,17 +28,29 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.Manifest;
 import android.widget.Toast;
 
 import com.example.chand.weathersamp.utils.MenuItem;
 import com.example.chand.weathersamp.utils.RoutineStep;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
+import com.google.firebase.database.ValueEventListener;
 import com.google.zxing.Result;
 
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.datatype.Duration;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
@@ -37,18 +58,41 @@ import me.dm7.barcodescanner.zxing.ZXingScannerView;
  * Created by chand on 13-08-2017.
  */
 
-public class InstallActivity extends AppCompatActivity implements ZXingScannerView.ResultHandler
+public class InstallActivity extends AppCompatActivity //implements ZXingScannerView.ResultHandler
 {
-
     Intent InstallIntent;
     TextView tvRoutineName;
     ImageView ivRoutineIcon;
-    ListView lvRoutineSteps;
     String sRoutineName;
+    Integer iCurrentScanRow = 1;
+    boolean doesnotified;
 
-    private ZXingScannerView zXingScannerView;
+    LinearLayout llLocationLayout;
+        LinearLayout llLocationStepEditLayout;
+            AutoCompleteTextView actvLocationValueEdit;
+        RelativeLayout rlLocationStepViewLayout;
+            TextView tvLocationValueView;
 
-    boolean CameraOn = false;
+    LinearLayout llNodeLayout;
+        LinearLayout llNodeStepEditLayout;
+            AutoCompleteTextView actvNodeValueEdit;
+        RelativeLayout rlNodeStepViewLayout;
+            TextView tvNodeValueView;
+
+    LinearLayout llAssetLayout;
+        LinearLayout llAssetStepEditLayout;
+            AutoCompleteTextView actvAssetValueEdit;
+        RelativeLayout rlAssetStepViewLayout;
+            TextView tvAssetValueView;
+
+    ImageView ivScanButton;
+
+    DatabaseReference mInstallReference;
+    DatabaseReference mInstallCheckReference;
+    DatabaseReference mInstallLocationReference;
+    DatabaseReference mInstallAssetReference;
+    DatabaseReference mInstallInventoryOnHandReference;
+    DatabaseReference mInstallInventoryInServiceReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -64,8 +108,90 @@ public class InstallActivity extends AppCompatActivity implements ZXingScannerVi
         ivRoutineIcon = (ImageView)findViewById(R.id.ivIcon_Image);
         ivRoutineIcon.setImageResource(InstallIntent.getIntExtra("IconId", R.drawable.install_icon));
 
-        lvRoutineSteps = (ListView)findViewById(R.id.lvRoutineSteps);
-        lvRoutineSteps.setAdapter(new RoutineStepsAdapter(this));
+        llLocationLayout = (LinearLayout)findViewById(R.id.llInstallLocationStepOuterLayout);
+        llLocationLayout.setVisibility(View.VISIBLE);
+        llLocationStepEditLayout = (LinearLayout)findViewById(R.id.llInstallLocationStepEditLayout);
+        llLocationStepEditLayout.setVisibility(View.VISIBLE);
+        actvLocationValueEdit = (AutoCompleteTextView)findViewById(R.id.actvInstallLocationValueEditField);
+        actvLocationValueEdit.setText("");
+        rlLocationStepViewLayout = (RelativeLayout) findViewById(R.id.rlInstallLocationStepViewLayout);
+        rlLocationStepViewLayout.setVisibility(View.GONE);
+        tvLocationValueView = (TextView)findViewById(R.id.tvInstallLocationStepValueView);
+        tvLocationValueView.setText("");
+
+        llNodeLayout = (LinearLayout)findViewById(R.id.llInstallNodeStepOuterLayout);
+        llNodeLayout.setVisibility(View.GONE);
+        llNodeStepEditLayout = (LinearLayout)findViewById(R.id.llInstallNodeStepEditLayout);
+        llNodeStepEditLayout.setVisibility(View.GONE);
+        actvNodeValueEdit = (AutoCompleteTextView)findViewById(R.id.actvInstallNodeValueEditField);
+        actvNodeValueEdit.setText("");
+        rlNodeStepViewLayout = (RelativeLayout) findViewById(R.id.rlInstallNodeStepViewLayout);
+        rlNodeStepViewLayout.setVisibility(View.GONE);
+        tvNodeValueView = (TextView)findViewById(R.id.tvInstallNodeStepValueView);
+        tvNodeValueView.setText("");
+
+        llAssetLayout = (LinearLayout)findViewById(R.id.llInstallAssetStepOuterLayout);
+        llAssetLayout.setVisibility(View.GONE);
+        llAssetStepEditLayout = (LinearLayout)findViewById(R.id.llInstallAssetStepEditLayout);
+        llAssetStepEditLayout.setVisibility(View.GONE);
+        actvAssetValueEdit = (AutoCompleteTextView)findViewById(R.id.actvInstallAssetValueEditField);
+        actvAssetValueEdit.setText("");
+        rlAssetStepViewLayout = (RelativeLayout) findViewById(R.id.rlInstallAssetStepViewLayout);
+        rlAssetStepViewLayout.setVisibility(View.GONE);
+        tvAssetValueView = (TextView)findViewById(R.id.tvInstallAssetStepValueView);
+        tvAssetValueView.setText("");
+
+        iCurrentScanRow = 1;
+
+        ivScanButton = (ImageView)findViewById(R.id.ivScan);
+        Log.v("Victor","before");
+
+        mInstallLocationReference = FirebaseDatabase.getInstance().getReference().child("locations");
+        mInstallLocationReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                GenericTypeIndicator<List<String>> t = new GenericTypeIndicator<List<String>>() {};
+                List InstallLocations = dataSnapshot.getValue(t);
+                String[] ArrayInstallLocations = new String[InstallLocations.size()];
+                for(int i=0;i<InstallLocations.size();i++)
+                {
+                    ArrayInstallLocations[i] = InstallLocations.get(i).toString();
+                }
+
+                ArrayAdapter<String> locationAdaptor = new ArrayAdapter<String>(InstallActivity.this,android.R.layout.simple_list_item_1, ArrayInstallLocations);
+                actvLocationValueEdit.setAdapter(locationAdaptor);
+                actvLocationValueEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        setLocationAndNext(actvLocationValueEdit.getText().toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        actvNodeValueEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                    if (actionId == EditorInfo.IME_ACTION_GO) {
+                        setNodeAndNext(actvNodeValueEdit.getText().toString());
+                        return true;
+                    }
+                    return false;
+                }
+            });
+
+        actvAssetValueEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                setAssetAndNext(actvAssetValueEdit.getText().toString());
+                submitRoutine(tvLocationValueView.getText().toString(),tvNodeValueView.getText().toString(),tvAssetValueView.getText().toString());
+            }
+        });
+                Log.v("Victor","after");
     }
 
     @Override
@@ -76,128 +202,168 @@ public class InstallActivity extends AppCompatActivity implements ZXingScannerVi
 
     public void scan(View view)
     {
-        zXingScannerView = new ZXingScannerView(getApplicationContext());
-        setContentView(zXingScannerView);
-        zXingScannerView.setResultHandler(this);
-        zXingScannerView.startCamera();
-        CameraOn = true;
+        Intent intent = new Intent(InstallActivity.this, ScanActivity.class);
+        startActivityForResult(intent, iCurrentScanRow);
     }
+
 
     @Override
     protected void onPause() {
         super.onPause();
-        if(CameraOn == true) {
-            zXingScannerView.stopCamera();
-            CameraOn = false;
-        }
     }
 
     @Override
-    public void handleResult(Result result) {
-        Toast.makeText(getApplicationContext(), result.getText(),Toast.LENGTH_LONG).show();
-        if(CameraOn == true) {
-            zXingScannerView.stopCamera();
-            CameraOn = false;
-        }
-        finish();
-    }
-}
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode == Activity.RESULT_OK)
+        {
+            switch(requestCode)
+            {
+                case 1:
+                    //Scanned when Location field is active
+                    setLocationAndNext(data.getStringExtra("scannedText"));
+                    break;
+                case 2:
+                    //Scanned when Node field is active
+                    setNodeAndNext(data.getStringExtra("scannedText"));
+                    break;
+                case 3:
+                    //Scanned when Asset field is active
+                    setAssetAndNext(data.getStringExtra("scannedText"));
+                    submitRoutine(tvLocationValueView.getText().toString(),tvNodeValueView.getText().toString(),tvAssetValueView.getText().toString());
+                    //System.out.println(tvLocationValueView.getText());
+                    break;
+            }
 
-class RoutineStepsAdapter extends BaseAdapter
-{
-    Context context;
-    ArrayList<RoutineStep> RoutineStepList;
-    RoutineStepsAdapter(Context context)
+            //Toast.makeText(getApplicationContext(), data.getStringExtra("scannedText"),Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void setLocationAndNext(String LocationName)
     {
-        this.context = context;
-        this.RoutineStepList = new ArrayList<RoutineStep>();
-        RoutineStep Step1 = new RoutineStep("Location", "BSNL-DEL-5789231",'V');
-        RoutineStep Step2 = new RoutineStep("Node", "NOD7890456",'V');
-        RoutineStep Step3 = new RoutineStep("AssetCode", "",'E');
-        RoutineStep Step4 = new RoutineStep("Install Confirmation", "",'H');
-        RoutineStepList.add(Step1);
-        RoutineStepList.add(Step2);
-        RoutineStepList.add(Step3);
-        RoutineStepList.add(Step4);
-    }
-    @Override
-    public int getCount() {
-        return RoutineStepList.size();
+        actvLocationValueEdit.setText(LocationName);
+        iCurrentScanRow = 2;
+        //Initiate Call for Location Validation and Ensure True ??? Shall be added later
+        tvLocationValueView.setText(LocationName);
+        llLocationStepEditLayout.setVisibility(View.GONE);
+        rlLocationStepViewLayout.setVisibility(View.VISIBLE);
+        llNodeLayout.setVisibility(View.VISIBLE);
+        llNodeStepEditLayout.setVisibility(View.VISIBLE);
     }
 
-    @Override
-    public Object getItem(int i) {
-        return RoutineStepList.get(i);
-    }
-
-    @Override
-    public long getItemId(int i) {
-        return i;
-    }
-
-    public class viewHolder
+    public void setNodeAndNext(String NodeName)
     {
-        ImageView ivRoutineIcon;
-        TextView tvRoutineName;
-        LinearLayout llRoutineStepEditLayout;
-        TextView tvRoutineStepNameEdit;
-        RelativeLayout rlRoutineValueEditLayout;
-        ImageView ivScan;
-        AutoCompleteTextView actvRoutineStepValueEdit;
-        RelativeLayout rlRoutineStepViewLayout;
-        TextView tvRoutineStepNameView;
-        TextView tvRoutineStepValueView;
+        actvNodeValueEdit.setText(NodeName);
+        iCurrentScanRow = 3;
+        //Initiate Call for Node Validation and Ensure True ??? Shall be added later
+        tvNodeValueView.setText(NodeName);
+        llNodeStepEditLayout.setVisibility(View.GONE);
+        rlNodeStepViewLayout.setVisibility(View.VISIBLE);
+        llAssetLayout.setVisibility(View.VISIBLE);
+        llAssetStepEditLayout.setVisibility(View.VISIBLE);
 
-        viewHolder(View v)
-        {
-            llRoutineStepEditLayout = (LinearLayout)v.findViewById(R.id.llRoutineStepEditLayout);
-            tvRoutineStepNameEdit = (TextView)v.findViewById(R.id.tvRoutineStepNameEdit);
-            rlRoutineValueEditLayout = (RelativeLayout)v.findViewById(R.id.rlRoutineValueEditLayout);
-            ivScan = (ImageView) v.findViewById(R.id.ivScan);
-            actvRoutineStepValueEdit = (AutoCompleteTextView)v.findViewById(R.id.actvRoutineStepValueEdit);
-            rlRoutineStepViewLayout = (RelativeLayout)v.findViewById(R.id.rlRoutineStepViewLayout);
-            tvRoutineStepNameView = (TextView)v.findViewById(R.id.tvRoutineStepNameView);
-            tvRoutineStepValueView = (TextView)v.findViewById(R.id.tvRoutineStepValueView);
-        }
+        mInstallAssetReference = FirebaseDatabase.getInstance().getReference().child("inventory").child(actvLocationValueEdit.getText().toString()).child("On Hand");
+        mInstallAssetReference.addValueEventListener(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.v("Victor","Asset on Data changed");
+                Iterable<DataSnapshot> snapshotIterator = dataSnapshot.getChildren();
+                Iterator<DataSnapshot> iterator = snapshotIterator.iterator();
+                List<String> AssetList = new ArrayList<String>();
+                String AssetCode;
+                while(iterator.hasNext())
+                {
+                    // iterator.next().getKey().toString();
+                    AssetCode = iterator.next().getKey();
+                    Log.v("Victor",AssetCode);
+                    AssetList.add(AssetCode);
+                }
+
+                String[] ArrayInstallableAssets = new String[AssetList.size()];
+                for(int i=0;i<AssetList.size();i++)
+                {
+                    ArrayInstallableAssets[i] = AssetList.get(i).toString();
+                }
+                ArrayAdapter<String> AssetAdaptor = new ArrayAdapter<String>(InstallActivity.this,android.R.layout.simple_list_item_1, ArrayInstallableAssets);
+                actvAssetValueEdit.setAdapter(AssetAdaptor);
+                actvAssetValueEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        setAssetAndNext(actvAssetValueEdit.getText().toString());
+                        submitRoutine(tvLocationValueView.getText().toString(),tvNodeValueView.getText().toString(),tvAssetValueView.getText().toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
-    @Override
-    public View getView(int i, View view, ViewGroup viewGroup) {
-        View RoutineStepView = view;
-        viewHolder RoutineStepViewHolder=null;
-        if(RoutineStepView==null)
-        {
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            RoutineStepView = inflater.inflate(R.layout.single_routinerow,viewGroup,false);
-            RoutineStepViewHolder = new viewHolder(RoutineStepView);
-            RoutineStepView.setTag(RoutineStepViewHolder);
-        }
-        else
-        {
-            RoutineStepViewHolder = (viewHolder) RoutineStepView.getTag();
-        }
-
-        if(RoutineStepList.get(i).StepFlag == 'E')
-        {
-            RoutineStepViewHolder.llRoutineStepEditLayout.setVisibility(View.VISIBLE);
-            RoutineStepViewHolder.tvRoutineStepNameEdit.setText("Enter " + RoutineStepList.get(i).StepName);
-            RoutineStepViewHolder.actvRoutineStepValueEdit.setHint("Scan or Enter " + RoutineStepList.get(i).StepName);
-            RoutineStepViewHolder.rlRoutineStepViewLayout.setVisibility(View.GONE);
-        }
-        else if (RoutineStepList.get(i).StepFlag == 'V')
-        {
-            RoutineStepViewHolder.llRoutineStepEditLayout.setVisibility(View.GONE);
-            RoutineStepViewHolder.rlRoutineStepViewLayout.setVisibility(View.VISIBLE);
-            RoutineStepViewHolder.tvRoutineStepNameView.setText(RoutineStepList.get(i).StepName);
-            RoutineStepViewHolder.tvRoutineStepValueView.setText(RoutineStepList.get(i).StepValue);
-        }
-        else
-        {
-            RoutineStepViewHolder.llRoutineStepEditLayout.setVisibility(View.GONE);
-            RoutineStepViewHolder.rlRoutineStepViewLayout.setVisibility(View.GONE);
-        }
-
-        return RoutineStepView;
+    public void setAssetAndNext(String AssetName)
+    {
+        actvAssetValueEdit.setText(AssetName);
+        iCurrentScanRow = 3;
+        //Initiate Call for Asset Validation and Ensure True ??? Shall be added later
+        tvAssetValueView.setText(AssetName);
+        llAssetStepEditLayout.setVisibility(View.GONE);
+        rlAssetStepViewLayout.setVisibility(View.VISIBLE);
+        //llAssetLayout.setVisibility(View.VISIBLE);
+        //llAssetStepEditLayout.setVisibility(View.VISIBLE);
     }
 
+    public void submitRoutine(final String LocationName, final String NodeName, String AssetCode)
+    {
+        doesnotified= false;
+        mInstallReference = FirebaseDatabase.getInstance().getReference().child("install").child(LocationName).child(NodeName).child(AssetCode);
+        mInstallReference.setValue("In Service");
+        mInstallInventoryInServiceReference = FirebaseDatabase.getInstance().getReference().child("inventory").child(LocationName).child("In Service").child(AssetCode);
+        mInstallInventoryInServiceReference.setValue("Y");
+        mInstallInventoryOnHandReference = FirebaseDatabase.getInstance().getReference().child("inventory").child(LocationName).child("On Hand").child(AssetCode);
+        mInstallInventoryOnHandReference.removeValue();
+        mInstallCheckReference = FirebaseDatabase.getInstance().getReference().child("install").child(LocationName).child(NodeName);
+        mInstallCheckReference.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                String ChildName = dataSnapshot.getKey();
+                String ChildValue = dataSnapshot.getValue(String.class);
+                //if(!doesnotified) {
+                    Toast.makeText(getApplicationContext(), ChildName + " has been added to the Node " + NodeName + " of Location " + LocationName + " in " + ChildValue + " status!", Toast.LENGTH_LONG).show();
+                    nextAsset();
+                    //doesnotified = true;
+                //}
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void nextAsset()
+    {
+     tvAssetValueView.setText("");
+        rlAssetStepViewLayout.setVisibility(View.GONE);
+        llAssetStepEditLayout.setVisibility(View.VISIBLE);
+        actvAssetValueEdit.setText("");
+    }
 }

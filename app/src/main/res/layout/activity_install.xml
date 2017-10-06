@@ -20,10 +20,243 @@
         android:onClick="scan"
         android:layout_toLeftOf="@id/tvRoutineIcon_name"
         android:paddingBottom="5dp"/>
-    <ListView
-        android:id="@+id/lvRoutineSteps"
-        android:layout_below="@id/tvRoutineIcon_name"
+    <LinearLayout
+        android:id="@+id/llInstallLocationStepOuterLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-    </ListView>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="visible"
+        android:layout_below="@id/ivIcon_Image">
+        <LinearLayout
+            android:id="@+id/llInstallLocationStepEditLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+            <TextView
+                android:id="@+id/tvInstallLocationEditHeaderName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enter Install Location"
+                android:textColor="#FFFFFF"
+                android:background="#000000"
+                android:visibility="visible"/>
+            <RelativeLayout
+                android:id="@+id/rlInstallLocationValueEditLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="visible">
+                <AutoCompleteTextView
+                    android:id="@+id/actvInstallLocationValueEditField"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:layout_alignParentTop="true"
+                    android:inputType="textCapCharacters"
+                    android:textAllCaps="true"
+                    android:hint="Scan or Enter Location" />
+            </RelativeLayout>
+        </LinearLayout>
+        <RelativeLayout
+            android:id="@+id/rlInstallLocationStepViewLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/routinestepgradient"
+            android:visibility="visible"
+            android:layout_below="@id/llInstallLocationStepEditLayout">
+
+            <TextView
+                android:id="@+id/tvInstallLocationStepHeaderView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:minWidth="100dp"
+                android:maxWidth="200dp"
+                android:gravity="center_vertical"
+                android:textStyle="italic"
+                android:textSize="25sp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:text="Location" />
+
+            <TextView
+                android:id="@+id/tvInstallLocationStepValueView"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:minWidth="100dp"
+                android:gravity="center_vertical"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                android:layout_alignParentTop="true"
+                android:layout_toRightOf="@id/tvInstallLocationStepHeaderView"
+                android:hint="Scan or Enter Location" />
+        </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llInstallNodeStepOuterLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="visible"
+        android:layout_below="@id/llInstallLocationStepOuterLayout">
+        <LinearLayout
+            android:id="@+id/llInstallNodeStepEditLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+            <TextView
+                android:id="@+id/tvInstallNodeEditHeaderName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enter Install Node"
+                android:textColor="#FFFFFF"
+                android:background="#000000"
+                android:visibility="visible"/>
+            <RelativeLayout
+                android:id="@+id/rlInstallNodeValueEditLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="visible">
+                <AutoCompleteTextView
+                    android:id="@+id/actvInstallNodeValueEditField"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:layout_alignParentTop="true"
+                    android:inputType="textCapCharacters"
+                    android:textAllCaps="true"
+                    android:imeOptions="actionGo"
+                    android:hint="Scan or Enter Node" />
+            </RelativeLayout>
+        </LinearLayout>
+        <RelativeLayout
+            android:id="@+id/rlInstallNodeStepViewLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/routinestepgradient"
+            android:visibility="visible"
+            android:layout_below="@id/llInstallNodeStepEditLayout">
+
+            <TextView
+                android:id="@+id/tvInstallNodeStepHeaderView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:minWidth="100dp"
+                android:maxWidth="200dp"
+                android:gravity="center_vertical"
+                android:textStyle="italic"
+                android:textSize="25sp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:text="Node" />
+
+            <TextView
+                android:id="@+id/tvInstallNodeStepValueView"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:minWidth="100dp"
+                android:gravity="center_vertical"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                android:layout_alignParentTop="true"
+                android:layout_toRightOf="@id/tvInstallNodeStepHeaderView"
+                android:hint="Scan or Enter Node" />
+        </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llInstallAssetStepOuterLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="visible"
+        android:layout_below="@id/llInstallNodeStepOuterLayout">
+        <LinearLayout
+            android:id="@+id/llInstallAssetStepEditLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+            <TextView
+                android:id="@+id/tvInstallAssetEditHeaderName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enter Install Asset"
+                android:textColor="#FFFFFF"
+                android:background="#000000"
+                android:visibility="visible"/>
+            <RelativeLayout
+                android:id="@+id/rlInstallAssetValueEditLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="visible">
+                <AutoCompleteTextView
+                    android:id="@+id/actvInstallAssetValueEditField"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="40dp"
+                    android:layout_alignParentTop="true"
+                    android:textAllCaps="true"
+                    android:inputType="textCapCharacters"
+                    android:imeOptions="actionGo"
+                    android:hint="Scan or Enter Asset Code" />
+            </RelativeLayout>
+        </LinearLayout>
+        <RelativeLayout
+            android:id="@+id/rlInstallAssetStepViewLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/routinestepgradient"
+            android:visibility="visible"
+            android:layout_below="@id/llInstallAssetStepEditLayout">
+
+            <TextView
+                android:id="@+id/tvInstallAssetStepHeaderView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:minWidth="100dp"
+                android:maxWidth="200dp"
+                android:gravity="center_vertical"
+                android:textStyle="italic"
+                android:textSize="25sp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:text="Asset Code" />
+
+            <TextView
+                android:id="@+id/tvInstallAssetStepValueView"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:minWidth="100dp"
+                android:gravity="center_vertical"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                android:layout_alignParentTop="true"
+                android:layout_toRightOf="@id/tvInstallAssetStepHeaderView"
+                android:hint="Scan or Enter Asset Code" />
+        </RelativeLayout>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/ivScan"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:paddingTop="2dp"
+        android:src="@drawable/scan_icon"
+        android:layout_centerInParent="true"
+        android:onClick="scan"/>
 </RelativeLayout>

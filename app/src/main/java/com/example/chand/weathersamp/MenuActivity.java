@@ -100,7 +100,7 @@ public class MenuActivity extends AppCompatActivity implements AdapterView.OnIte
                 else
                 {
                     Log.d("AuthTest","No of User Profiles set for this user is " + userprofiles.size());
-                    Log.d("AuthTest",userprofiles.get(3).toString());
+                    //Log.d("AuthTest",userprofiles.get(3).toString());
                     for(int i=0;i<userprofiles.size();i++)
                     {
                         switch (userprofiles.get(i).toString())
