@@ -166,13 +166,28 @@ public class MenuActivity extends AppCompatActivity implements AdapterView.OnIte
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, PERMISSION_REQUEST);
             return;
         }
-        Intent InstallIntent = new Intent(this,InstallActivity.class);
+
         Log.d("AuthTest","On Click");
         MenuAdapter.viewHolder MenuViewHolder = (MenuAdapter.viewHolder) view.getTag();
         MenuItem ChosenMenu = (MenuItem) MenuViewHolder.ivRoutineIcon.getTag();
-        InstallIntent.putExtra("IconId",ChosenMenu.iconId );
-        InstallIntent.putExtra("IconText",ChosenMenu.iconName);
-        startActivity(InstallIntent);
+        Intent RoutineIntent;
+        switch (ChosenMenu.iconName)
+        {
+            case "Install":
+                RoutineIntent = new Intent(this,InstallActivity.class);
+                RoutineIntent.putExtra("IconId",ChosenMenu.iconId );
+                RoutineIntent.putExtra("IconText",ChosenMenu.iconName);
+                startActivity(RoutineIntent);
+                break;
+            case "Uninstall":
+                RoutineIntent = new Intent(this,UnInstallActivity.class);
+                RoutineIntent.putExtra("IconId",ChosenMenu.iconId );
+                RoutineIntent.putExtra("IconText",ChosenMenu.iconName);
+                startActivity(RoutineIntent);
+                break;
+        }
+
+
     }
 }
 
