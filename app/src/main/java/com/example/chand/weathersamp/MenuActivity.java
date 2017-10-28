@@ -1,10 +1,14 @@
 package com.example.chand.weathersamp;
 
 import android.*;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -24,7 +28,9 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.chand.weathersamp.utils.LocationBest;
 import com.example.chand.weathersamp.utils.MenuItem;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -46,10 +52,14 @@ public class MenuActivity extends AppCompatActivity implements AdapterView.OnIte
     TextView tvEmail;
     DatabaseReference mUserProfileReference;
     ArrayList<MenuItem> MenuList;
-    ImageView ivLogOut;
+    ImageView ivLogOut,ivLocation;
     private FirebaseAuth mAuth;
+    Location CurrentUserLocation = null;
+    LocationManager locationManager = null;
+    LocationListener locationListener = null;
 
-    public static final int PERMISSION_REQUEST = 200;
+    public static final int PERMISSION_REQUEST_CAMERA = 200;
+    public static final int PERMISSION_REQUEST_GPS = 300;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -60,6 +70,7 @@ public class MenuActivity extends AppCompatActivity implements AdapterView.OnIte
         MenuLayout = (RelativeLayout)findViewById(R.id.rlMenuView);
         MenuProgressBar = (ProgressBar)findViewById(R.id.pbMenuProgress);
         ivLogOut = (ImageView)findViewById(R.id.ivLogout);
+        ivLocation = (ImageView)findViewById(R.id.ivLocation);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -83,6 +94,50 @@ public class MenuActivity extends AppCompatActivity implements AdapterView.OnIte
                 finish();
             }
         });
+
+        // Acquire a reference to the system Location Manager
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        // Define a listener that responds to location updates
+        locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+                // Called when a new location is found by the network location provider.
+                //makeUseOfNewLocation(location);
+                ivLocation.setImageResource(R.drawable.locationloaded_icon);
+                LocationBest locationBest = new LocationBest();
+                //Find if the current location is better than the last know best location
+                if(ContextCompat.checkSelfPermission(MenuActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                {
+                    if (locationBest.isBetterLocation(location, locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER))) {
+                        CurrentUserLocation = location;
+                        //Toast.makeText(getApplicationContext(), "Lat : " + CurrentUserLocation.getLatitude() + " | Long : " + CurrentUserLocation.getLongitude() + " | Aqr : " + CurrentUserLocation.getAccuracy() + " | Alt : " + CurrentUserLocation.getAltitude(), Toast.LENGTH_LONG).show();
+                    }
+                    else
+                    {
+                        CurrentUserLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        //Toast.makeText(getApplicationContext(), "Lat : " + CurrentUserLocation.getLatitude() + " | Long : " + CurrentUserLocation.getLongitude() + " | Aqr : " + CurrentUserLocation.getAccuracy() + " | Alt : " + CurrentUserLocation.getAltitude(), Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+            public void onProviderEnabled(String provider) {}
+
+            public void onProviderDisabled(String provider) {}
+        };
+
+
+        //Allow to proceed further if and only if the User allowed the Camera Permission
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_GPS);
+        }
+        else
+        {
+            // Register the listener with the Location Manager to receive location updates
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        }
 
         mUserProfileReference = FirebaseDatabase.getInstance().getReference().child("users").child(MenuIntent.getStringExtra("UserID")).child("mobilityprofiles");
         mUserProfileReference.addValueEventListener(new ValueEventListener()
@@ -163,7 +218,7 @@ public class MenuActivity extends AppCompatActivity implements AdapterView.OnIte
         //Allow to proceed further if and only if the User allowed the Camera Permission
         if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
         {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, PERMISSION_REQUEST);
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, PERMISSION_REQUEST_CAMERA);
             return;
         }
 
@@ -177,17 +232,19 @@ public class MenuActivity extends AppCompatActivity implements AdapterView.OnIte
                 RoutineIntent = new Intent(this,InstallActivity.class);
                 RoutineIntent.putExtra("IconId",ChosenMenu.iconId );
                 RoutineIntent.putExtra("IconText",ChosenMenu.iconName);
+                RoutineIntent.putExtra("CurrentUserLocation",CurrentUserLocation);
+                locationManager.removeUpdates(locationListener);
                 startActivity(RoutineIntent);
                 break;
             case "Uninstall":
                 RoutineIntent = new Intent(this,UnInstallActivity.class);
                 RoutineIntent.putExtra("IconId",ChosenMenu.iconId );
                 RoutineIntent.putExtra("IconText",ChosenMenu.iconName);
+                RoutineIntent.putExtra("CurrentUserLocation",CurrentUserLocation);
+                locationManager.removeUpdates(locationListener);
                 startActivity(RoutineIntent);
                 break;
         }
-
-
     }
 }
 

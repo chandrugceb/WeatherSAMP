@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.opengl.Visibility;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -93,105 +96,130 @@ public class InstallActivity extends AppCompatActivity //implements ZXingScanner
     DatabaseReference mInstallAssetReference;
     DatabaseReference mInstallInventoryOnHandReference;
     DatabaseReference mInstallInventoryInServiceReference;
+    DatabaseReference mInstallLocationGPSReference;
+
+    public Location CurrentUserLocation;
+    com.example.chand.weathersamp.utils.Location CustomLocation;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_install);
         InstallIntent = this.getIntent();
 
-        tvRoutineName = (TextView)findViewById(R.id.tvRoutineIcon_name);
+        tvRoutineName = (TextView) findViewById(R.id.tvRoutineIcon_name);
         sRoutineName = InstallIntent.getStringExtra("IconText");
         tvRoutineName.setText(sRoutineName);
 
-        ivRoutineIcon = (ImageView)findViewById(R.id.ivIcon_Image);
+        ivRoutineIcon = (ImageView) findViewById(R.id.ivIcon_Image);
         ivRoutineIcon.setImageResource(InstallIntent.getIntExtra("IconId", R.drawable.install_icon));
 
-        llLocationLayout = (LinearLayout)findViewById(R.id.llInstallLocationStepOuterLayout);
+        Bundle bundle = InstallIntent.getExtras();
+        CurrentUserLocation = bundle.getParcelable("CurrentUserLocation");
+        if(CurrentUserLocation != null) {
+            Toast.makeText(getApplicationContext(), "Install Lat : " + CurrentUserLocation.getLatitude() + " | Long : " + CurrentUserLocation.getLongitude() + " | Aqr : " + CurrentUserLocation.getAccuracy() + " | Alt : " + CurrentUserLocation.getAltitude(), Toast.LENGTH_LONG).show();
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(),"No GPS Location Found",Toast.LENGTH_LONG).show();
+        }
+            llLocationLayout = (LinearLayout) findViewById(R.id.llInstallLocationStepOuterLayout);
+
         llLocationLayout.setVisibility(View.VISIBLE);
-        llLocationStepEditLayout = (LinearLayout)findViewById(R.id.llInstallLocationStepEditLayout);
+        llLocationStepEditLayout = (LinearLayout) findViewById(R.id.llInstallLocationStepEditLayout);
         llLocationStepEditLayout.setVisibility(View.VISIBLE);
-        actvLocationValueEdit = (AutoCompleteTextView)findViewById(R.id.actvInstallLocationValueEditField);
+        actvLocationValueEdit = (AutoCompleteTextView) findViewById(R.id.actvInstallLocationValueEditField);
         actvLocationValueEdit.setText("");
         rlLocationStepViewLayout = (RelativeLayout) findViewById(R.id.rlInstallLocationStepViewLayout);
         rlLocationStepViewLayout.setVisibility(View.GONE);
-        tvLocationValueView = (TextView)findViewById(R.id.tvInstallLocationStepValueView);
+        tvLocationValueView = (TextView) findViewById(R.id.tvInstallLocationStepValueView);
         tvLocationValueView.setText("");
 
-        llNodeLayout = (LinearLayout)findViewById(R.id.llInstallNodeStepOuterLayout);
+        llNodeLayout = (LinearLayout) findViewById(R.id.llInstallNodeStepOuterLayout);
         llNodeLayout.setVisibility(View.GONE);
-        llNodeStepEditLayout = (LinearLayout)findViewById(R.id.llInstallNodeStepEditLayout);
+        llNodeStepEditLayout = (LinearLayout) findViewById(R.id.llInstallNodeStepEditLayout);
         llNodeStepEditLayout.setVisibility(View.GONE);
-        actvNodeValueEdit = (AutoCompleteTextView)findViewById(R.id.actvInstallNodeValueEditField);
+        actvNodeValueEdit = (AutoCompleteTextView) findViewById(R.id.actvInstallNodeValueEditField);
         actvNodeValueEdit.setText("");
         rlNodeStepViewLayout = (RelativeLayout) findViewById(R.id.rlInstallNodeStepViewLayout);
         rlNodeStepViewLayout.setVisibility(View.GONE);
-        tvNodeValueView = (TextView)findViewById(R.id.tvInstallNodeStepValueView);
+        tvNodeValueView = (TextView) findViewById(R.id.tvInstallNodeStepValueView);
         tvNodeValueView.setText("");
 
-        llAssetLayout = (LinearLayout)findViewById(R.id.llInstallAssetStepOuterLayout);
+        llAssetLayout = (LinearLayout) findViewById(R.id.llInstallAssetStepOuterLayout);
         llAssetLayout.setVisibility(View.GONE);
-        llAssetStepEditLayout = (LinearLayout)findViewById(R.id.llInstallAssetStepEditLayout);
+        llAssetStepEditLayout = (LinearLayout) findViewById(R.id.llInstallAssetStepEditLayout);
         llAssetStepEditLayout.setVisibility(View.GONE);
-        actvAssetValueEdit = (AutoCompleteTextView)findViewById(R.id.actvInstallAssetValueEditField);
+        actvAssetValueEdit = (AutoCompleteTextView) findViewById(R.id.actvInstallAssetValueEditField);
         actvAssetValueEdit.setText("");
         rlAssetStepViewLayout = (RelativeLayout) findViewById(R.id.rlInstallAssetStepViewLayout);
         rlAssetStepViewLayout.setVisibility(View.GONE);
-        tvAssetValueView = (TextView)findViewById(R.id.tvInstallAssetStepValueView);
+        tvAssetValueView = (TextView) findViewById(R.id.tvInstallAssetStepValueView);
         tvAssetValueView.setText("");
 
         iCurrentScanRow = 1;
 
-        ivScanButton = (ImageView)findViewById(R.id.ivScan);
-        Log.v("Victor","before");
+        ivScanButton = (ImageView) findViewById(R.id.ivScan);
+        Log.v("Victor", "before");
 
-        mInstallLocationReference = FirebaseDatabase.getInstance().getReference().child("locations");
-        mInstallLocationReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                GenericTypeIndicator<List<String>> t = new GenericTypeIndicator<List<String>>() {};
-                List InstallLocations = dataSnapshot.getValue(t);
-                String[] ArrayInstallLocations = new String[InstallLocations.size()];
-                for(int i=0;i<InstallLocations.size();i++)
-                {
-                    ArrayInstallLocations[i] = InstallLocations.get(i).toString();
-                }
-
-                ArrayAdapter<String> locationAdaptor = new ArrayAdapter<String>(InstallActivity.this,android.R.layout.simple_list_item_1, ArrayInstallLocations);
-                actvLocationValueEdit.setAdapter(locationAdaptor);
-                actvLocationValueEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                        setLocationAndNext(actvLocationValueEdit.getText().toString());
-                    }
-                });
+/*
+    mInstallLocationReference = FirebaseDatabase.getInstance().getReference().child("locations");
+    mInstallLocationReference.addValueEventListener(new ValueEventListener() {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            GenericTypeIndicator<List<String>> t = new GenericTypeIndicator<List<String>>() {
+            };
+            List InstallLocations = dataSnapshot.getValue(t);
+            String[] ArrayInstallLocations = new String[InstallLocations.size()];
+            for (int i = 0; i < InstallLocations.size(); i++) {
+                ArrayInstallLocations[i] = InstallLocations.get(i).toString();
             }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        actvNodeValueEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                    if (actionId == EditorInfo.IME_ACTION_GO) {
-                        setNodeAndNext(actvNodeValueEdit.getText().toString());
-                        return true;
-                    }
-                    return false;
+            ArrayAdapter<String> locationAdaptor = new ArrayAdapter<String>(InstallActivity.this, android.R.layout.simple_list_item_1, ArrayInstallLocations);
+            actvLocationValueEdit.setAdapter(locationAdaptor);
+            actvLocationValueEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    setLocationAndNext(actvLocationValueEdit.getText().toString());
                 }
             });
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    });
+*/
+
+    mInstallLocationGPSReference = FirebaseDatabase.getInstance().getReference().child("locations_gps");
+        if(CurrentUserLocation==null)
+        {
+            getGlobalLocationPickList();
+        }
+        else
+        {
+            setLocationBasedOnGPS();
+        }
+
+        actvNodeValueEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_GO) {
+                    setNodeAndNext(actvNodeValueEdit.getText().toString());
+                    return true;
+                }
+                return false;
+            }
+        });
 
         actvAssetValueEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 setAssetAndNext(actvAssetValueEdit.getText().toString());
-                submitRoutine(tvLocationValueView.getText().toString(),tvNodeValueView.getText().toString(),tvAssetValueView.getText().toString());
+                submitRoutine(tvLocationValueView.getText().toString(), tvNodeValueView.getText().toString(), tvAssetValueView.getText().toString());
             }
         });
-                Log.v("Victor","after");
+        Log.v("Victor", "after");
     }
 
     @Override
@@ -366,4 +394,107 @@ public class InstallActivity extends AppCompatActivity //implements ZXingScanner
         llAssetStepEditLayout.setVisibility(View.VISIBLE);
         actvAssetValueEdit.setText("");
     }
+
+    //Location Picklist Helper Functions
+    void getGlobalLocationPickList()
+    {
+        mInstallLocationGPSReference.orderByChild("Location_Name").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                GenericTypeIndicator<List<com.example.chand.weathersamp.utils.Location>> t = new GenericTypeIndicator<List<com.example.chand.weathersamp.utils.Location>>() {
+                };
+                Log.v("Victor", dataSnapshot.toString());
+                List InstallGPSLocationsRaw = dataSnapshot.getValue(t);
+                com.example.chand.weathersamp.utils.Location TempGPSLocation1;
+                List<com.example.chand.weathersamp.utils.Location> InstallGPSLocations = new ArrayList<com.example.chand.weathersamp.utils.Location>();
+                for (int i = 0; i < InstallGPSLocationsRaw.size(); i++) {
+                    if (InstallGPSLocationsRaw.get(i) != null) {
+                        TempGPSLocation1 = (com.example.chand.weathersamp.utils.Location) InstallGPSLocationsRaw.get(i);
+                        InstallGPSLocations.add(TempGPSLocation1);
+                    }
+                }
+                if (InstallGPSLocations.size() == 0) {
+                    Toast.makeText(getApplicationContext(), "No Location available", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                String[] ArrayInstallLocations = new String[InstallGPSLocations.size()];
+                for (int i = 0; i < InstallGPSLocations.size(); i++) {
+
+                    ArrayInstallLocations[i] =  InstallGPSLocations.get(i).getLocation_Name();
+                }
+
+                ArrayAdapter<String> locationAdaptor = new ArrayAdapter<String>(InstallActivity.this, android.R.layout.simple_list_item_1, ArrayInstallLocations);
+                actvLocationValueEdit.setAdapter(locationAdaptor);
+                actvLocationValueEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        setLocationAndNext(actvLocationValueEdit.getText().toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    void setLocationBasedOnGPS()
+    {
+        Double Latitude = CurrentUserLocation.getLatitude();
+
+        mInstallLocationGPSReference.orderByChild("Latitude").startAt(Latitude-0.01).endAt(Latitude+0.01).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Double Longitude = CurrentUserLocation.getLongitude();
+                GenericTypeIndicator<List<com.example.chand.weathersamp.utils.Location>> t = new GenericTypeIndicator<List<com.example.chand.weathersamp.utils.Location>>() {
+                };
+                Log.v("Victor", dataSnapshot.toString());
+                if(dataSnapshot.getValue() == null)
+                {
+                    Toast.makeText(getApplicationContext(), "No Matching Location for Current GPS Location", Toast.LENGTH_LONG).show();
+                    getGlobalLocationPickList();
+                    return;
+                }
+                //List InstallGPSLocationsRaw = dataSnapshot.getValue(t);
+                List<com.example.chand.weathersamp.utils.Location> InstallGPSLocationsRaw = new ArrayList<com.example.chand.weathersamp.utils.Location>();
+                for(DataSnapshot child: dataSnapshot.getChildren())
+                {
+                    if(child != null)
+                    {
+                        InstallGPSLocationsRaw.add(child.getValue(com.example.chand.weathersamp.utils.Location.class));
+                    }
+                }
+                com.example.chand.weathersamp.utils.Location TempGPSLocation1;
+                List<com.example.chand.weathersamp.utils.Location> InstallGPSLocations = new ArrayList<com.example.chand.weathersamp.utils.Location>();
+                for (int i = 0; i < InstallGPSLocationsRaw.size(); i++) {
+                    if (InstallGPSLocationsRaw.get(i) != null) {
+                        TempGPSLocation1 = (com.example.chand.weathersamp.utils.Location) InstallGPSLocationsRaw.get(i);
+                        if (TempGPSLocation1.getLongitude() > (Longitude-0.01) && TempGPSLocation1.getLongitude() < (Longitude+0.01)) {
+                            InstallGPSLocations.add(TempGPSLocation1);
+                        }
+                    }
+                }
+                if (InstallGPSLocations.size() == 0) {
+                    Toast.makeText(getApplicationContext(), "No Matching Location for Current GPS Location", Toast.LENGTH_LONG).show();
+                    getGlobalLocationPickList();
+                    return;
+                }
+                String[] ArrayInstallLocations = new String[InstallGPSLocations.size()];
+                for (int i = 0; i < InstallGPSLocations.size(); i++)
+                {
+                    ArrayInstallLocations[i] = InstallGPSLocations.get(i).getLocation_Name();
+                }
+                actvLocationValueEdit.setText(ArrayInstallLocations[0]);
+                setLocationAndNext(ArrayInstallLocations[0]);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
 }
