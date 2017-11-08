@@ -94,7 +94,6 @@ public class MenuActivity extends AppCompatActivity implements AdapterView.OnIte
                 finish();
             }
         });
-
         // Acquire a reference to the system Location Manager
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 

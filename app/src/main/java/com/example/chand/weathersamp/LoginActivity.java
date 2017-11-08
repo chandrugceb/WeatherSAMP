@@ -27,6 +27,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 public class LoginActivity extends AppCompatActivity
 {
@@ -35,6 +36,7 @@ public class LoginActivity extends AppCompatActivity
     Button buttonSignOn;
     ConstraintLayout clLoginView;
     ProgressBar pbLoginProgress;
+    DatabaseReference regIdRef;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -181,6 +183,8 @@ public class LoginActivity extends AppCompatActivity
 
     private void gotoMenu(String email, String userId)
     {
+        regIdRef = FirebaseDatabase.getInstance().getReference().child("regId").child(userId);
+        regIdRef.setValue(FirebaseInstanceId.getInstance().getToken());
         Intent MenuIntent = new Intent(LoginActivity.this, MenuActivity.class);
         MenuIntent.putExtra("UserEmail",email);
         MenuIntent.putExtra("UserID",userId);

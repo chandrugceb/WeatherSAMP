@@ -3,6 +3,8 @@
     package="com.example.chand.weathersamp">
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
     <!-- Needed only if your app targets Android 5.0 (API level 21) or higher. -->
     <uses-feature android:name="android.hardware.location.gps" />
     <application
@@ -23,9 +25,22 @@
         </activity>
         <activity android:name=".MainActivity"></activity>
         <activity android:name=".MenuActivity"></activity>
-        <activity android:name=".InstallActivity"></activity>
+        <activity android:name=".InstallActivity">
+            <intent-filter>
+                <category android:name="android.intent.category.LAUNCHER"></category>
+            </intent-filter>
+        </activity>
         <activity android:name=".UnInstallActivity"></activity>
         <activity android:name=".ScanActivity"></activity>
+        <service android:name=".MyFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+        <service android:name=".MyFirebaseInstanceIDService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
     </application>
-
 </manifest>

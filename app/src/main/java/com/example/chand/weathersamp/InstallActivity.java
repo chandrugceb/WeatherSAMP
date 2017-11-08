@@ -125,6 +125,7 @@ public class InstallActivity extends AppCompatActivity //implements ZXingScanner
         }
             llLocationLayout = (LinearLayout) findViewById(R.id.llInstallLocationStepOuterLayout);
 
+
         llLocationLayout.setVisibility(View.VISIBLE);
         llLocationStepEditLayout = (LinearLayout) findViewById(R.id.llInstallLocationStepEditLayout);
         llLocationStepEditLayout.setVisibility(View.VISIBLE);
@@ -220,6 +221,12 @@ public class InstallActivity extends AppCompatActivity //implements ZXingScanner
             }
         });
         Log.v("Victor", "after");
+
+        if(InstallIntent.getStringExtra("InstallLocationName")!=null)
+        {
+            setLocationAndNext(InstallIntent.getStringExtra("InstallLocationName"));
+        }
+
     }
 
     @Override
