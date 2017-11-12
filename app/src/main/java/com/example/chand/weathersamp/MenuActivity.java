@@ -243,6 +243,14 @@ public class MenuActivity extends AppCompatActivity implements AdapterView.OnIte
                 locationManager.removeUpdates(locationListener);
                 startActivity(RoutineIntent);
                 break;
+            case "Swap":
+                RoutineIntent = new Intent(this,SwapActivity.class);
+                RoutineIntent.putExtra("IconId",ChosenMenu.iconId );
+                RoutineIntent.putExtra("IconText",ChosenMenu.iconName);
+                RoutineIntent.putExtra("CurrentUserLocation",CurrentUserLocation);
+                locationManager.removeUpdates(locationListener);
+                startActivity(RoutineIntent);
+                break;
         }
     }
 }
