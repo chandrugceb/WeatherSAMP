@@ -123,9 +123,8 @@ public class InstallActivity extends AppCompatActivity //implements ZXingScanner
         {
             Toast.makeText(getApplicationContext(),"No GPS Location Found",Toast.LENGTH_LONG).show();
         }
-            llLocationLayout = (LinearLayout) findViewById(R.id.llInstallLocationStepOuterLayout);
 
-
+        llLocationLayout = (LinearLayout) findViewById(R.id.llInstallLocationStepOuterLayout);
         llLocationLayout.setVisibility(View.VISIBLE);
         llLocationStepEditLayout = (LinearLayout) findViewById(R.id.llInstallLocationStepEditLayout);
         llLocationStepEditLayout.setVisibility(View.VISIBLE);

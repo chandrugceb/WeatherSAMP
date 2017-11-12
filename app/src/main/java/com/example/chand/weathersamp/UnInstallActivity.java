@@ -2,6 +2,7 @@ package com.example.chand.weathersamp;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -68,6 +69,10 @@ public class UnInstallActivity extends AppCompatActivity //implements ZXingScann
     DatabaseReference mUnInstallAssetReference;
     DatabaseReference mUnInstallInventoryOnHandReference;
     DatabaseReference mUnInstallInventoryInServiceReference;
+    DatabaseReference mUnInstallLocationGPSReference;
+
+    public Location CurrentUserLocation;
+    com.example.chand.weathersamp.utils.Location CustomLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -82,6 +87,16 @@ public class UnInstallActivity extends AppCompatActivity //implements ZXingScann
 
         ivUnInstallRoutineIcon = (ImageView)findViewById(R.id.ivUnInstallIcon_Image);
         ivUnInstallRoutineIcon.setImageResource(UnInstallIntent.getIntExtra("IconId", R.drawable.uninstall_icon));
+
+        Bundle bundle = UnInstallIntent.getExtras();
+        CurrentUserLocation = bundle.getParcelable("CurrentUserLocation");
+        if(CurrentUserLocation != null) {
+            Toast.makeText(getApplicationContext(), "Install Lat : " + CurrentUserLocation.getLatitude() + " | Long : " + CurrentUserLocation.getLongitude() + " | Aqr : " + CurrentUserLocation.getAccuracy() + " | Alt : " + CurrentUserLocation.getAltitude(), Toast.LENGTH_LONG).show();
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(),"No GPS Location Found",Toast.LENGTH_LONG).show();
+        }
 
         llLocationLayout = (LinearLayout)findViewById(R.id.llUnInstallLocationStepOuterLayout);
         llLocationLayout.setVisibility(View.VISIBLE);
@@ -120,7 +135,7 @@ public class UnInstallActivity extends AppCompatActivity //implements ZXingScann
 
         ivScanButton = (ImageView)findViewById(R.id.ivUnInstallScan);
         Log.v("Victor","before");
-
+/*
         mUnInstallLocationReference = FirebaseDatabase.getInstance().getReference().child("locations");
         mUnInstallLocationReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -148,6 +163,18 @@ public class UnInstallActivity extends AppCompatActivity //implements ZXingScann
 
             }
         });
+*/
+
+        mUnInstallLocationGPSReference = FirebaseDatabase.getInstance().getReference().child("locations_gps");
+        if(CurrentUserLocation==null)
+        {
+            getGlobalLocationPickList();
+        }
+        else
+        {
+            setLocationBasedOnGPS();
+        }
+
 
         actvNodeValueEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -167,6 +194,11 @@ public class UnInstallActivity extends AppCompatActivity //implements ZXingScann
             }
         });
                 Log.v("Victor","after");
+
+        if(UnInstallIntent.getStringExtra("UnInstallLocationName")!=null)
+        {
+            setLocationAndNext(UnInstallIntent.getStringExtra("UnInstallLocationName"));
+        }
     }
 
     @Override
@@ -341,5 +373,108 @@ public class UnInstallActivity extends AppCompatActivity //implements ZXingScann
         rlAssetStepViewLayout.setVisibility(View.GONE);
         llAssetStepEditLayout.setVisibility(View.VISIBLE);
         actvAssetValueEdit.setText("");
+    }
+
+
+    //Location Picklist Helper Functions
+    void getGlobalLocationPickList()
+    {
+        mUnInstallLocationGPSReference.orderByChild("Location_Name").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                GenericTypeIndicator<List<com.example.chand.weathersamp.utils.Location>> t = new GenericTypeIndicator<List<com.example.chand.weathersamp.utils.Location>>() {
+                };
+                Log.v("Victor", dataSnapshot.toString());
+                List InstallGPSLocationsRaw = dataSnapshot.getValue(t);
+                com.example.chand.weathersamp.utils.Location TempGPSLocation1;
+                List<com.example.chand.weathersamp.utils.Location> InstallGPSLocations = new ArrayList<com.example.chand.weathersamp.utils.Location>();
+                for (int i = 0; i < InstallGPSLocationsRaw.size(); i++) {
+                    if (InstallGPSLocationsRaw.get(i) != null) {
+                        TempGPSLocation1 = (com.example.chand.weathersamp.utils.Location) InstallGPSLocationsRaw.get(i);
+                        InstallGPSLocations.add(TempGPSLocation1);
+                    }
+                }
+                if (InstallGPSLocations.size() == 0) {
+                    Toast.makeText(getApplicationContext(), "No Location available", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                String[] ArrayInstallLocations = new String[InstallGPSLocations.size()];
+                for (int i = 0; i < InstallGPSLocations.size(); i++) {
+
+                    ArrayInstallLocations[i] =  InstallGPSLocations.get(i).getLocation_Name();
+                }
+
+                ArrayAdapter<String> locationAdaptor = new ArrayAdapter<String>(UnInstallActivity.this, android.R.layout.simple_list_item_1, ArrayInstallLocations);
+                actvLocationValueEdit.setAdapter(locationAdaptor);
+                actvLocationValueEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        setLocationAndNext(actvLocationValueEdit.getText().toString());
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    void setLocationBasedOnGPS()
+    {
+        Double Latitude = CurrentUserLocation.getLatitude();
+
+        mUnInstallLocationGPSReference.orderByChild("Latitude").startAt(Latitude-0.01).endAt(Latitude+0.01).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Double Longitude = CurrentUserLocation.getLongitude();
+                GenericTypeIndicator<List<com.example.chand.weathersamp.utils.Location>> t = new GenericTypeIndicator<List<com.example.chand.weathersamp.utils.Location>>() {
+                };
+                Log.v("Victor", dataSnapshot.toString());
+                if(dataSnapshot.getValue() == null)
+                {
+                    Toast.makeText(getApplicationContext(), "No Matching Location for Current GPS Location", Toast.LENGTH_LONG).show();
+                    getGlobalLocationPickList();
+                    return;
+                }
+                //List InstallGPSLocationsRaw = dataSnapshot.getValue(t);
+                List<com.example.chand.weathersamp.utils.Location> InstallGPSLocationsRaw = new ArrayList<com.example.chand.weathersamp.utils.Location>();
+                for(DataSnapshot child: dataSnapshot.getChildren())
+                {
+                    if(child != null)
+                    {
+                        InstallGPSLocationsRaw.add(child.getValue(com.example.chand.weathersamp.utils.Location.class));
+                    }
+                }
+                com.example.chand.weathersamp.utils.Location TempGPSLocation1;
+                List<com.example.chand.weathersamp.utils.Location> InstallGPSLocations = new ArrayList<com.example.chand.weathersamp.utils.Location>();
+                for (int i = 0; i < InstallGPSLocationsRaw.size(); i++) {
+                    if (InstallGPSLocationsRaw.get(i) != null) {
+                        TempGPSLocation1 = (com.example.chand.weathersamp.utils.Location) InstallGPSLocationsRaw.get(i);
+                        if (TempGPSLocation1.getLongitude() > (Longitude-0.01) && TempGPSLocation1.getLongitude() < (Longitude+0.01)) {
+                            InstallGPSLocations.add(TempGPSLocation1);
+                        }
+                    }
+                }
+                if (InstallGPSLocations.size() == 0) {
+                    Toast.makeText(getApplicationContext(), "No Matching Location for Current GPS Location", Toast.LENGTH_LONG).show();
+                    getGlobalLocationPickList();
+                    return;
+                }
+                String[] ArrayInstallLocations = new String[InstallGPSLocations.size()];
+                for (int i = 0; i < InstallGPSLocations.size(); i++)
+                {
+                    ArrayInstallLocations[i] = InstallGPSLocations.get(i).getLocation_Name();
+                }
+                actvLocationValueEdit.setText(ArrayInstallLocations[0]);
+                setLocationAndNext(ArrayInstallLocations[0]);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 }
